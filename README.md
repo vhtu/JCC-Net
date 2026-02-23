@@ -93,7 +93,7 @@ Outputs:
 
 -   Classification report
 -   Confusion matrix
--   results/confusion_matrix_clip_only.png
+
 
 
 # JCC-Net
