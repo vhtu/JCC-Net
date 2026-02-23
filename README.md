@@ -81,10 +81,6 @@ pip install -r requirements.txt
 python train.py
 ```
 
-Best model saved at:
-
-    checkpoints/best_model_clip_only.pth
-
 ------------------------------------------------------------------------
 
 ## 6. Evaluation
