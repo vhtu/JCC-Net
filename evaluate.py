@@ -9,7 +9,7 @@ from transformers import BertTokenizer
 from configs.config import *
 from data.dataset import CLIPDataset
 from data.data_utils import load_all_data
-from models.clip_model import CLIPMultimodalModel
+from models.model import JCCNet
 
 
 def evaluate():
@@ -23,7 +23,7 @@ def evaluate():
         batch_size=BATCH_SIZE
     )
 
-    model = CLIPMultimodalModel(NUM_CLASSES).to(DEVICE)
+    model = JCCNet(NUM_CLASSES).to(DEVICE)
 
     weight_path = "checkpoints/best_model_clip_only.pth"
 

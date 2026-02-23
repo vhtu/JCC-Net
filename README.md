@@ -47,7 +47,7 @@ Each JSON entry contains:
     │   └── data_utils.py
     │
     ├── models/
-    │   ├── clip_model.py
+    │   ├── model.py
     │   ├── projector.py
     │   └── losses.py
     │
