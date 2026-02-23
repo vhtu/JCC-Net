@@ -1,59 +1,76 @@
 import os
 import torch
-import matplotlib.pyplot as plt
 import seaborn as sns
+import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader
 from sklearn.metrics import classification_report, confusion_matrix
 from transformers import BertTokenizer
 
 from configs.config import *
-from data.dataset import CLIPDataset
 from data.data_utils import load_all_data
-from models.model import JCCNet
+from data.dataset import SimCLRDataset
+from models.model import FullContrastiveModel
 
 
-def evaluate():
-    print("Loading dataset...")
+def main():
+
+    print("\n--- TESTING PHASE ---")
+
+    # =========================
+    # Load dataset
+    # =========================
     full_data = load_all_data(DATASET_ROOT, JSON_PATH)
 
-    tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
+    tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 
     test_loader = DataLoader(
-        CLIPDataset(full_data, tokenizer, IMG_SIZE, MAX_SEQ_LEN, False),
-        batch_size=BATCH_SIZE
+        SimCLRDataset(full_data, tokenizer, IMG_SIZE, MAX_SEQ_LEN, False),
+        batch_size=BATCH_SIZE,
+        shuffle=False
     )
 
-    model = JCCNet(NUM_CLASSES).to(DEVICE)
+    # =========================
+    # Load model
+    # =========================
+    model = FullContrastiveModel(NUM_CLASSES).to(DEVICE)
 
-    weight_path = "checkpoints/best_model_clip_only.pth"
-
-    if not os.path.exists(weight_path):
-        print("Weight file not found!")
+    if os.path.exists(CHECKPOINT_PATH):
+        model.load_state_dict(torch.load(CHECKPOINT_PATH, map_location=DEVICE))
+        print(f"✔ Loaded weight from: {CHECKPOINT_PATH}")
+    else:
+        print(f"❌ Không tìm thấy {CHECKPOINT_PATH}")
         return
 
-    model.load_state_dict(torch.load(weight_path, map_location=DEVICE))
-    print("✔ Loaded best model")
-
     model.eval()
+
     all_preds = []
     all_labels = []
 
+    # =========================
+    # Testing loop
+    # =========================
     with torch.no_grad():
+
         for batch in test_loader:
-            imgs = batch['image'].to(DEVICE)
+
+            v1 = batch['img_v1'].to(DEVICE)
             ids = batch['input_ids'].to(DEVICE)
             mask = batch['attention_mask'].to(DEVICE)
-            labels = batch['label'].to(DEVICE)
+            lbl = batch['label'].to(DEVICE)
 
-            logits, _, _ = model(imgs, ids, mask)
-            preds = torch.argmax(logits, dim=1)
+            logits, _, _, _ = model(v1, None, ids, mask)
 
-            all_preds.extend(preds.cpu().numpy())
-            all_labels.extend(labels.cpu().numpy())
+            _, predicted = torch.max(logits, 1)
 
+            all_preds.extend(predicted.cpu().numpy())
+            all_labels.extend(lbl.cpu().numpy())
+
+    # =========================
+    # Metrics
+    # =========================
     target_names = [f"Class {i}" for i in range(NUM_CLASSES)]
 
-    print("\n===== CLASSIFICATION REPORT =====")
+    print("\nClassification Report:")
     print(classification_report(
         all_labels,
         all_preds,
@@ -61,18 +78,20 @@ def evaluate():
         digits=4
     ))
 
+    # =========================
+    # Confusion Matrix
+    # =========================
     cm = confusion_matrix(all_labels, all_preds)
 
     plt.figure(figsize=(10, 8))
-    sns.heatmap(cm, annot=True, fmt='d', cmap='Oranges')
-    plt.title("Confusion Matrix (CLIP Only)")
-    plt.xlabel("Predicted")
-    plt.ylabel("True")
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Purples')
+    plt.xlabel('Predicted')
+    plt.ylabel('True')
+    plt.title('Confusion Matrix (Full Contrastive Learning)')
+    plt.savefig('confusion_matrix_full_contrastive.png')
 
-    os.makedirs("results", exist_ok=True)
-    plt.savefig("results/confusion_matrix_clip_only.png")
-    print("✔ Saved confusion matrix")
+    print("✔ Đã lưu confusion matrix.")
 
 
 if __name__ == "__main__":
-    evaluate()
+    main()
