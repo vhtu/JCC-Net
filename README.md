@@ -1,8 +1,8 @@
-# JCC-Net: Joint Cross-Modal Contrastive Network for Multimodal Fish and Shrimp Disease Classification
+# JITCA: Joint Cross-Modal Contrastive Network for Multimodal Fish and Shrimp Disease Classification
 
 ## 1. Abstract
 
-This repository presents **JCC-Net**, a robust multimodal deep learning framework that integrates visual imagery with symptom descriptions to enhance diagnostic precision.
+This repository presents **JITCA**, a robust multimodal deep learning framework that integrates visual imagery with symptom descriptions to enhance diagnostic precision.
 
 ------------------------------------------------------------------------
 
@@ -37,7 +37,7 @@ Each JSON entry contains:
 
 ## 3. Project Structure
 
-    JCC-Net/
+    JITCA/
     │
     ├── configs/
     │   └── config.py
@@ -96,4 +96,4 @@ Outputs:
 
 
 
-# JCC-Net
+# JITCA
